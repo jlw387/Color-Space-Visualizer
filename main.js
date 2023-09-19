@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
-//import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'OrbitControls.js';
 
 import * as colormath from './colormath.js';
 
@@ -19,8 +19,8 @@ const render_element = document.getElementById("renderCanvas");
 render_element.appendChild( renderer.domElement );
 
 camera.position.set(2.5,2.5,2.5);
-//const controls = new OrbitControls( camera, renderer.domElement );
-//controls.target = cameraFocus;
+const controls = new OrbitControls( camera, renderer.domElement );
+controls.target = cameraFocus;
 
 // Add Axes to scene
 const axes = new THREE.AxesHelper(2)
