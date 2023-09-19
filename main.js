@@ -29,7 +29,7 @@ scene.add(axes);
 // Common Linear Color Spaces (defined in XYZ coords) (taken from http://www.brucelindbloom.com/Eqn_RGB_XYZ_Matrix.html)
 
 // Adobe RGB
-const AdobeRGBToXYZ = new THREE.Matrix3(0.5767309, 0.1855540, 0.1881852,
+const AdobeRGBToXYZ = new THREE.Matrix3().set(0.5767309, 0.1855540, 0.1881852,
                                         0.2973769, 0.6273491, 0.0752741,
                                         0.0270343, 0.0706872, 0.9911085);
 
@@ -37,7 +37,7 @@ const XYZToAdobeRGB = AdobeRGBToXYZ.clone();
 XYZToAdobeRGB.invert();
 
 // AppleRGB
-const AppleRGBToXYZ = new THREE.Matrix3(0.4497288, 0.3162486, 0.1844926,
+const AppleRGBToXYZ = new THREE.Matrix3().set(0.4497288, 0.3162486, 0.1844926,
                                         0.2446525, 0.6720283, 0.0833192,
                                         0.0251848, 0.1411824, 0.9224628);
 
@@ -45,7 +45,7 @@ const XYZToAppleRGB = AppleRGBToXYZ.clone();
 XYZToAppleRGB.invert();
 
 // sRGB
-const SRGBToXYZ = new THREE.Matrix3(0.4124564, 0.3575761, 0.1804375,
+const SRGBToXYZ = new THREE.Matrix3().set(0.4124564, 0.3575761, 0.1804375,
                                     0.2126729, 0.7151522, 0.0721750,
                                     0.0193339, 0.1191920, 0.9503041);
 
