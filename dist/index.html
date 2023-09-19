@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>3D Color Spaces Demo</title>
+		<link rel="stylesheet" type="text/css" href="styles.css">
+	</head>
+	<body>
+		<div id="title" class="title">
+			Color Space Demo
+		</div>
+		<br>
+		<div class="container">
+			<div id="renderCanvas" class="render">
+			</div>
+			<div id="overallMenu" class="menu" style="text-align: center;">
+				<div id="basisSelectMenu">
+					<label for="basis_dropdown">Basis Color Space:</label>
+					<select id="basis_dropdown">
+						<option value="srgb">sRGB</option>
+						<option value="adobe">Adobe RGB</option>
+						<option value="apple">Apple RGB</option>
+						<option value="xyz">CIE XYZ</option>
+					</select>
+				</div>
+				<div id="gamutVisibilityMenu" style="text-align: left;">
+					<div>
+						<label for="xyzVisibleCheckbox">CIE XYZ Gamut:</label>
+    					<input type="checkbox" id="xyzVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+					<div>
+						<label for="adobeVisibleCheckbox">Adobe Gamut:</label>
+    					<input type="checkbox" id="adobeVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+					<div>
+						<label for="appleVisibleCheckbox">Apple Gamut:</label>
+    					<input type="checkbox" id="appleVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+					<div>
+						<label for="srgbVisibleCheckbox">sRGB Gamut:</label>
+    					<input type="checkbox" id="srgbVisibleCheckbox" class="visible-checkbox" checked>
+					</div>
+					<div>
+						<label for="spectralLocusVisibleCheckbox">Spectral Locus:</label>
+    					<input type="checkbox" id="spectralLocusVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="module" src="/main.js"></script>
+	</body>
+</html>
