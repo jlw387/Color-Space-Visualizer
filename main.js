@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import * as THREE from 'three';
 import { OrbitControls } from 'OrbitControls.js';
 
 import * as colormath from './colormath.js';
