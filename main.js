@@ -19,8 +19,8 @@ const render_element = document.getElementById("renderCanvas");
 render_element.appendChild( renderer.domElement );
 
 camera.position.set(2.5,2.5,2.5);
-//const controls = new OrbitControls( camera, renderer.domElement );
-//controls.target = cameraFocus;
+const controls = new OrbitControls( camera, renderer.domElement );
+controls.target = cameraFocus;
 
 // Add Axes to scene
 const axes = new THREE.AxesHelper(2)
