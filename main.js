@@ -67,20 +67,20 @@ XYZToSRGB.invert();
 
 // Create default gamut parallelepipeds
 
-const piped_xyz = new THREE.Group();
 const piped_ciergb = new THREE.Group();
 const piped_adobe = new THREE.Group();
 const piped_apple = new THREE.Group();
 const piped_srgb = new THREE.Group();
+const piped_xyz = new THREE.Group();
 
 // Create gamut color variables
 
 // Need to keep these default values synced with HTML defaults
 var ciergbColor = 0x808080;
-var xyzColor = 0xffffff;
 var adobeColor = 0xff00ff;
 var appleColor = 0xffff00;
 var srgbColor = 0x40C0C0;
+var xyzColor = 0xffffff;
 
 
 // Set up gamut color pickers
@@ -405,6 +405,10 @@ function handleGamutColorChange(event){
 
         case "colorpick_srgb":
             srgbColor = event.target.value;
+            break;
+
+        case "colorpick_xyz":
+            xyzColor = event.target.value;
             break;
     }
 
