@@ -240,14 +240,16 @@ var visible_locus_dirty = true;
 // Add Unit Triangle
 
 const plane_dist = 1;
+const tri_eps = 0.0001; // Prevents z-fighting with larger unit plane
+
 const unit_plane_normal = new THREE.Vector3(1, 1, 1);
 unit_plane_normal.normalize();
 
 const unit_triangle_geo = new THREE.BufferGeometry();
 const vertices = new Float32Array( [
-    plane_dist, 0.0, 0.0, // v1
-    0.0, plane_dist, 0.0, // v2
-    0.0, 0.0, plane_dist // v3
+    plane_dist + tri_eps, 0.0, 0.0, // v1
+    0.0, plane_dist + tri_eps, 0.0, // v2
+    0.0, 0.0, plane_dist + tri_eps // v3
 ] );
 
 unit_triangle_geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
