@@ -65,7 +65,11 @@ const SRGBToXYZ = new THREE.Matrix3().set(0.4124564, 0.3575761, 0.1804375,
 const XYZToSRGB = SRGBToXYZ.clone();
 XYZToSRGB.invert();
 
+
+
 // Create default gamut parallelepipeds
+
+const pipeds = new THREE.Group();
 
 const piped_ciergb = new THREE.Group();
 const piped_adobe = new THREE.Group();
@@ -82,7 +86,6 @@ var appleColor = 0xffff00;
 var srgbColor = 0x40C0C0;
 var xyzColor = 0xffffff;
 
-
 // Set up gamut color pickers
 
 var colorpickers = document.querySelectorAll(".gamut-colorpicker");
@@ -97,7 +100,7 @@ colormath.UpdateParallelipiped(piped_adobe, AdobeRGBToXYZ, adobeColor);
 colormath.UpdateParallelipiped(piped_apple, AppleRGBToXYZ, appleColor);
 colormath.UpdateParallelipiped(piped_srgb, SRGBToXYZ, srgbColor);
 
-// Set starting Visibility
+// Set starting visibility
 
 piped_ciergb.visible = true;
 
@@ -106,55 +109,18 @@ piped_adobe.visible = false;
 piped_apple.visible = false;
 piped_srgb.visible = false;
 
-// Add gamut parallelepipeds to Scene
+// Add gamut parallelepipeds to group/scene
 
-scene.add(piped_xyz);
-scene.add(piped_ciergb);
-scene.add(piped_adobe);
-scene.add(piped_apple);
-scene.add(piped_srgb);
+pipeds.add(piped_xyz);
+pipeds.add(piped_ciergb);
+pipeds.add(piped_adobe);
+pipeds.add(piped_apple);
+pipeds.add(piped_srgb);
 
-// Used for reducing unnecessary computation
-var pipeds_dirty = true;
-
-// Add Diagram Unit Plane
-
-const plane_dist = 1;
-
-const unit_plane_geo = new THREE.BufferGeometry();
-const vertices = new Float32Array( [
-    plane_dist, 0.0, 0.0, // v1
-    0.0, plane_dist, 0.0, // v2
-    0.0, 0.0, plane_dist // v3
-] );
-
-unit_plane_geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-const unit_plane_alpha_texture = new THREE.TextureLoader().load( "ChromaticityPlaneAlphaTexture.png" );
-const unit_plane_material = new THREE.MeshBasicMaterial( {alphaMap: unit_plane_alpha_texture, 
-                                                  color: 0xA0A0A0,
-                                                  side: THREE.DoubleSide} );
-unit_plane_material.transparent = true;
-const unit_plane_mesh = new THREE.Mesh(unit_plane_geo, unit_plane_material);
-
-unit_plane_mesh.visible = false;
-
-scene.add(unit_plane_mesh);
+scene.add(pipeds);
 
 // Used for reducing unnecessary computation
-var unit_plane_mesh_dirty = true;
-
-// Add Visible Locus to Scene
-
-const visible_locus = new THREE.Group();
-const normalized_locus_curve = new THREE.Group();
-
-visible_locus.visible = false;
-normalized_locus_curve.visible = false;
-
-scene.add(visible_locus);
-scene.add(normalized_locus_curve);
-
-var visible_locus_dirty = true;
+var gamuts_dirty = true;
 
 // Set up basis changing
 
@@ -169,8 +135,174 @@ var transitioning_color_space = false;
 var transition_step = 0;
 var transition_duration = 10;
 
+// Set up gamut triangles
 
-// Set up gamut visibility checkboxes
+const gamut_triangles = new THREE.Group();
+
+const triangle_ciergb = new THREE.Group();
+const triangle_adobe = new THREE.Group();
+const triangle_apple = new THREE.Group();
+const triangle_srgb = new THREE.Group();
+const triangle_xyz = new THREE.Group();
+
+const gamutTriangleVertexGeo = new THREE.SphereGeometry(0.02,16,8);
+const gamutTriangleLineGeo = new THREE.CylinderGeometry(
+    0.0125,    // Radius at the top
+    0.0125, // Radius at the bottom
+    1,       // Height of the cylinder
+    16, // Number of radial segments
+  );
+
+// Set starting visibility
+
+triangle_ciergb.visible = true;
+
+triangle_xyz.visible = false;
+triangle_adobe.visible = false;
+triangle_apple.visible = false;
+triangle_srgb.visible = false;
+
+gamut_triangles.visible = false;
+
+// Add gamut triangles to group/scene  
+
+gamut_triangles.add(triangle_ciergb);
+gamut_triangles.add(triangle_adobe);
+gamut_triangles.add(triangle_apple);
+gamut_triangles.add(triangle_srgb);
+gamut_triangles.add(triangle_xyz);
+
+scene.add(gamut_triangles);
+
+// 3D Color Viewer
+
+const colorViewerToggleElements = ["3DColor_basis_dropdown", 
+                                    "3DColorRCoordinate", 
+                                    "3DColorGCoordinate", 
+                                    "3DColorBCoordinate", 
+                                    "3DColorAxesVisibleCheckbox"];
+
+const colorViewerGroup = new THREE.Group();
+
+const colorViewerSphereGroup = new THREE.Group();
+
+const colorViewerPointGeo = new THREE.SphereGeometry(0.05,32,16);
+var colorViewerMaterial = new THREE.MeshBasicMaterial({color: 0x808080});
+var colorViewerPointMesh = new THREE.Mesh(colorViewerPointGeo, colorViewerMaterial);
+
+colorViewerPointMesh.translateX(0.5);
+colorViewerPointMesh.translateY(0.5);
+colorViewerPointMesh.translateZ(0.5);
+
+colorViewerSphereGroup.add(colorViewerPointMesh);
+
+const colorViewerAxesGroup = new THREE.Group();
+
+const rAxisColor = 0xC00000;
+const bAxisColor = 0x0000A0;
+const gAxisColor = 0x00C000;
+
+var colorViewerRAxis = new THREE.Group();
+var colorViewerBAxis = new THREE.Group();
+var colorViewerGAxis = new THREE.Group();
+
+colorViewerAxesGroup.add(colorViewerRAxis);
+colorViewerAxesGroup.add(colorViewerBAxis);
+colorViewerAxesGroup.add(colorViewerGAxis);
+
+colorViewerAxesGroup.visible = false;
+
+colorViewerGroup.add(colorViewerSphereGroup);
+colorViewerGroup.add(colorViewerAxesGroup);
+
+colorViewerGroup.visible = false;
+
+scene.add(colorViewerGroup);
+
+var color_viewer_dirty = true;
+
+
+
+// Add Visible Locus to Scene
+
+const visible_locus = new THREE.Group();
+const normalized_locus_curve = new THREE.Group();
+
+visible_locus.visible = false;
+normalized_locus_curve.visible = false;
+
+scene.add(visible_locus);
+scene.add(normalized_locus_curve);
+
+var visible_locus_dirty = true;
+
+
+// Add Unit Triangle
+
+const plane_dist = 1;
+const unit_plane_normal = new THREE.Vector3(1, 1, 1);
+unit_plane_normal.normalize();
+
+const unit_triangle_geo = new THREE.BufferGeometry();
+const vertices = new Float32Array( [
+    plane_dist, 0.0, 0.0, // v1
+    0.0, plane_dist, 0.0, // v2
+    0.0, 0.0, plane_dist // v3
+] );
+
+unit_triangle_geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+const unit_triangle_material = new THREE.MeshBasicMaterial( {color: 0xA0A0A0,
+                                                  side: THREE.DoubleSide} );
+unit_triangle_material.transparent = true;
+unit_triangle_material.opacity = 0.5;
+
+const unit_triangle_mesh = new THREE.Mesh(unit_triangle_geo, unit_triangle_material);
+
+unit_triangle_mesh.visible = false;
+
+scene.add(unit_triangle_mesh);
+
+
+// Add Unit Plane
+
+const width = 20; // Adjust this to make it sufficiently large
+const height = 20; // Adjust this to make it sufficiently large
+
+const unit_plane_geo = new THREE.PlaneGeometry(width, height, 1, 1);
+
+// Set up unit plane material
+const unit_plane_material = new THREE.MeshBasicMaterial( {color: 0xA0A0A0,
+    side: THREE.DoubleSide} );
+unit_plane_material.transparent = true;
+unit_plane_material.opacity = 0.5;
+
+// Create plane mesh
+const unit_plane_mesh = new THREE.Mesh(unit_plane_geo, unit_plane_material);
+
+// Set the plane's position
+unit_plane_mesh.position.set(plane_dist/3, plane_dist/3, plane_dist/3);
+
+// Rotate mesh to correct normal
+unit_plane_mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), unit_plane_normal);
+
+unit_plane_mesh.visible = false;
+
+scene.add(unit_plane_mesh);
+
+// Set up opacity sliders
+
+var opacity_sliders = document.querySelectorAll(".opacity-slider");
+opacity_sliders.forEach(function(slider){
+    slider.addEventListener("input", handleOpacityChange);
+});
+
+
+// Used for reducing unnecessary computation
+var unit_meshes_dirty = true;
+var diagram_camera_dirty = false;
+
+
+// Set up visibility checkboxes
 
 var checkboxes = document.querySelectorAll(".visible-checkbox");
 
@@ -178,9 +310,169 @@ checkboxes.forEach(function(checkbox) {
     checkbox.addEventListener("change", handleVisibilityChange);
 });
 
+
+// Set up color basis input
+
+// Get references to the coordinate input elements
+const colorBasisInput = document.getElementById("3DColor_basis_dropdown");
+colorBasisInput.addEventListener("change", handleColorViewerChange);
+
+
+
+// Set up coordinate inputs
+
+// Get references to the coordinate input elements
+const rInput = document.getElementById("3DColorRCoordinate");
+const gInput = document.getElementById("3DColorGCoordinate");
+const bInput = document.getElementById("3DColorBCoordinate");
+
+// Add event listeners for coordinate input value changes
+rInput.addEventListener("change", handleColorViewerChange);
+gInput.addEventListener("change", handleColorViewerChange);
+bInput.addEventListener("change", handleColorViewerChange);
+
+
+
 // Set up diagram mode slider
 
 document.getElementById("diagramModeToggle").addEventListener("change", swapDiagramMode);
+
+function updateAxisMeshes(axisGroup, axisDirVec, origin, length, color){
+    axisGroup.clear();
+    axisGroup.setRotationFromMatrix(new THREE.Matrix4());
+
+    // console.log("Axis Dir:", axisDirVec);
+    // console.log("Origin:", origin);
+    // console.log("Length:", length);
+    // console.log("Color:", color);
+
+    const LINE_WIDTH = 0.03;
+    const CONE_START_WIDTH = 0.06;
+    const CONE_END_WIDTH = 0;
+
+    const lineGeo = new THREE.CylinderGeometry(LINE_WIDTH, LINE_WIDTH, length*0.8, 16);
+    const coneGeo = new THREE.CylinderGeometry(CONE_END_WIDTH, CONE_START_WIDTH, length*0.25, 16);
+    
+    const axisMaterial = new THREE.MeshBasicMaterial({color: color});
+
+    const lineMesh = new THREE.Mesh(lineGeo, axisMaterial);
+    const coneMesh = new THREE.Mesh(coneGeo, axisMaterial);
+
+    lineMesh.translateY(length*0.4);
+    coneMesh.translateY(length*0.875);
+
+    axisGroup.add(lineMesh);
+    axisGroup.add(coneMesh);
+
+    const rotationAxis = new THREE.Vector3();
+    rotationAxis.crossVectors(axisDirVec, new THREE.Vector3(0,1,0));
+    rotationAxis.normalize();
+
+    const angle = axisDirVec.angleTo(new THREE.Vector3(0,1,0));
+    console.log("Axis Direction:", axisDirVec);
+    console.log("Rotation Axis:", rotationAxis);
+
+    axisGroup.rotateOnWorldAxis(rotationAxis, -angle); 
+
+    axisGroup.position.set(origin.x, origin.y, origin.z);
+}
+
+function updateGamutTriangle(gamutTriangle, gamutTransformMatrix, color){
+    gamutTriangle.clear();
+    
+    const gamut_mat = new THREE.MeshBasicMaterial({color: color}); 
+
+    // Initialize vectors for the three primaries
+
+    const r = new THREE.Vector3(1,0,0);
+    const g = new THREE.Vector3(0,1,0);
+    const b = new THREE.Vector3(0,0,1);
+
+    // Compute transformed primary vectors
+
+    r.applyMatrix3(gamutTransformMatrix);
+    g.applyMatrix3(gamutTransformMatrix);
+    b.applyMatrix3(gamutTransformMatrix);
+
+    // Normalize (L1) transformed primary vectors 
+
+    const r_l1_mag = r.x + r.y + r.z;
+    const g_l1_mag = g.x + g.y + g.z;
+    const b_l1_mag = b.x + b.y + b.z;
+
+    r.multiplyScalar(1/r_l1_mag);
+    g.multiplyScalar(1/g_l1_mag);
+    b.multiplyScalar(1/b_l1_mag);
+
+
+    // Create sphere meshes (gamut triangle vertices)
+
+    const r_sphere_mesh = new THREE.Mesh(gamutTriangleVertexGeo, gamut_mat);
+    const g_sphere_mesh = new THREE.Mesh(gamutTriangleVertexGeo, gamut_mat);
+    const b_sphere_mesh = new THREE.Mesh(gamutTriangleVertexGeo, gamut_mat);
+
+    r_sphere_mesh.position.set(r.x, r.y, r.z);
+    g_sphere_mesh.position.set(g.x, g.y, g.z);
+    b_sphere_mesh.position.set(b.x, b.y, b.z);
+
+    // Create cylinder meshes
+
+    const rg_cylinder = new THREE.Mesh(gamutTriangleLineGeo, gamut_mat);
+    const gb_cylinder = new THREE.Mesh(gamutTriangleLineGeo, gamut_mat);
+    const rb_cylinder = new THREE.Mesh(gamutTriangleLineGeo, gamut_mat);
+    
+    // Compute parameters for cylinder meshes (gamut triangle lines)
+
+    const rg_midpoint = new THREE.Vector3();
+    const gb_midpoint = new THREE.Vector3();
+    const rb_midpoint = new THREE.Vector3();
+
+    const rg_dir = new THREE.Vector3();
+    const gb_dir = new THREE.Vector3();
+    const rb_dir = new THREE.Vector3();
+
+    rg_midpoint.addVectors(r, g).multiplyScalar(0.5);
+    rg_dir.subVectors(g, r);
+
+    gb_midpoint.addVectors(g, b).multiplyScalar(0.5);
+    gb_dir.subVectors(b, g);
+
+    rb_midpoint.addVectors(r, b).multiplyScalar(0.5);
+    rb_dir.subVectors(b, r);
+
+    // Scale Cylinders
+
+    rg_cylinder.scale.set(1, rg_dir.length(), 1);
+    gb_cylinder.scale.set(1, gb_dir.length(), 1);
+    rb_cylinder.scale.set(1, rb_dir.length(), 1);
+
+    // Normalize direction vectors
+
+    rg_dir.normalize();
+    gb_dir.normalize();
+    rb_dir.normalize();
+
+    // Orient cylinders
+
+    rg_cylinder.position.copy(rg_midpoint);
+    rg_cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), rg_dir);
+
+    gb_cylinder.position.copy(gb_midpoint);
+    gb_cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), gb_dir);
+
+    rb_cylinder.position.copy(rb_midpoint);
+    rb_cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), rb_dir);
+
+    // Add meshes to gamut
+
+    gamutTriangle.add(r_sphere_mesh);
+    gamutTriangle.add(g_sphere_mesh);
+    gamutTriangle.add(b_sphere_mesh);
+
+    gamutTriangle.add(rg_cylinder);
+    gamutTriangle.add(gb_cylinder);
+    gamutTriangle.add(rb_cylinder);
+}
 
 function isDiagramMode()
 {
@@ -192,17 +484,7 @@ function swapToDiagramCamera()
     // Store old camera to swap back later
     stored_camera = camera.clone();
     controls.enabled = false;
-
-    const x_width = Math.max(3, 2 * camera.aspect);
-    const y_height = Math.max(2, 3 / camera.aspect);
-
-    const ortho = new THREE.OrthographicCamera(0.5 - x_width/2, 0.5 + x_width/2,
-                                               0.5 + y_height/2, 0.5 - y_height/2, 
-                                               1, 20);
-    ortho.translateZ(10);
-    ortho.lookAt(new THREE.Vector3(0,0,0));
-
-    camera.copy(ortho);
+    diagram_camera_dirty = true;
 }
 
 function swapFromDiagramCamera()
@@ -241,6 +523,153 @@ function handleBasisChange(){
     transitioning_color_space = true;
 }
 
+function handleVisibilityChange(event){
+    var id = event.target.id;
+
+    switch(id)
+    {
+        case "xyzVisibleCheckbox":
+            if(piped_xyz != null)
+                piped_xyz.visible = event.target.checked;
+            if(triangle_xyz != null)
+                triangle_xyz.visible = event.target.checked;
+            gamuts_dirty = true;
+            break;
+
+        case "ciergbVisibleCheckbox":
+                if(piped_ciergb != null)
+                    piped_ciergb.visible = event.target.checked;
+                if(triangle_ciergb != null)
+                    triangle_ciergb.visible = event.target.checked;
+                gamuts_dirty = true;
+                break;
+        
+        case "adobeVisibleCheckbox":
+            if(piped_adobe != null)
+                piped_adobe.visible = event.target.checked;
+            if(triangle_adobe != null)
+                triangle_adobe.visible = event.target.checked;
+            gamuts_dirty = true;    
+            break;
+        
+        case "appleVisibleCheckbox":
+            if(piped_apple != null)
+                piped_apple.visible = event.target.checked;
+            if(triangle_apple != null)
+                triangle_apple.visible = event.target.checked;
+            gamuts_dirty = true;
+            break;
+        
+        case "srgbVisibleCheckbox":
+            if(piped_srgb != null)
+                piped_srgb.visible = event.target.checked;
+            if(triangle_srgb != null)
+                triangle_srgb.visible = event.target.checked;
+            gamuts_dirty = true;
+            break;
+
+        case "3DGamutsVisibleCheckbox":
+            pipeds.visible = event.target.checked;
+            gamuts_dirty = true;
+            break;
+
+        case "2DGamutsVisibleCheckbox":
+            gamut_triangles.visible = event.target.checked;
+            gamuts_dirty = true;
+            break;
+
+        case "3DColorVisibleCheckbox":
+            for(let i = 0; i < colorViewerToggleElements.length; ++i)
+            {
+                document.getElementById(colorViewerToggleElements[i]).disabled = !event.target.checked;
+            }
+            colorViewerGroup.visible = event.target.checked;
+            break;
+
+        case "3DColorAxesVisibleCheckbox":
+            colorViewerAxesGroup.visible = event.target.checked;
+            console.log(colorViewerAxesGroup.visible);
+            color_viewer_dirty = true;
+            break;
+            
+        case "spectralLocusVisibleCheckbox":
+            if(!isDiagramMode()){
+                if(visible_locus != null)
+                    visible_locus.visible = event.target.checked;  
+            }
+            else{
+                if(normalized_locus_curve != null)
+                    normalized_locus_curve.visible = event.target.checked;
+                diagram_camera_dirty = true;
+            }
+            visible_locus_dirty = true;
+            break;
+
+        case "unitTriangleVisibleCheckbox":
+            if(unit_triangle_mesh != null)
+                unit_triangle_mesh.visible = event.target.checked;
+            unit_meshes_dirty = true;
+            break;
+
+        case "unitPlaneVisibleCheckbox":
+            if(unit_plane_mesh != null)
+                unit_plane_mesh.visible = event.target.checked;
+            unit_meshes_dirty = true;
+            break;
+    }
+
+}
+
+function handleOpacityChange(event){
+    var id = event.target.id;
+
+    switch(id)
+    {
+        case "unitTriangleOpacitySlider":
+            unit_triangle_material.opacity = event.target.value;
+            unit_meshes_dirty;
+            break;
+
+        case "unitPlaneOpacitySlider":
+            unit_plane_material.opacity = event.target.value;
+            unit_meshes_dirty;
+            break;
+    }
+}
+
+function handleGamutColorChange(event){
+    var id = event.target.id;
+    gamuts_dirty = true;
+    color_viewer_dirty = true; 
+    switch(id)
+    {   
+        case "colorpick_ciergb":
+            ciergbColor = event.target.value;
+            break;
+
+        case "colorpick_adobe":
+            adobeColor = event.target.value;
+            break;
+        
+        case "colorpick_apple":
+            appleColor = event.target.value;
+            break; 
+
+        case "colorpick_srgb":
+            srgbColor = event.target.value;
+            break;
+
+        case "colorpick_xyz":
+            xyzColor = event.target.value;
+            break;
+    }
+
+}
+
+function handleColorViewerChange(event){
+    color_viewer_dirty = true; 
+}
+
 function getBasisMatrix(basis)
 {
     switch(basis)
@@ -275,9 +704,12 @@ function updateBasisMatrix()
     transition_step += 1;
     console.log(transition_step);
     
+
+    gamuts_dirty = true;
+    color_viewer_dirty = true;
+    unit_meshes_dirty = true;
     visible_locus_dirty = true;
-    pipeds_dirty = true;
-    unit_plane_mesh_dirty = true;
+    diagram_camera_dirty = true;
 
     if(transition_step < transition_duration)
     {
@@ -330,90 +762,6 @@ function updateBasisMatrix()
     
 }
 
-function handleVisibilityChange(event){
-    var id = event.target.id;
-
-    switch(id)
-    {
-        case "xyzVisibleCheckbox":
-            if(piped_xyz != null)
-                piped_xyz.visible = event.target.checked;
-            pipeds_dirty = true;
-            break;
-
-        case "ciergbVisibleCheckbox":
-                if(piped_ciergb != null)
-                    piped_ciergb.visible = event.target.checked;
-                pipeds_dirty = true;
-                break;
-        
-        case "adobeVisibleCheckbox":
-            if(piped_adobe != null)
-                piped_adobe.visible = event.target.checked;
-            pipeds_dirty = true;    
-            break;
-        
-        case "appleVisibleCheckbox":
-            if(piped_apple != null)
-                piped_apple.visible = event.target.checked;
-            pipeds_dirty = true;
-            break;
-        
-        case "srgbVisibleCheckbox":
-            if(piped_srgb != null)
-                piped_srgb.visible = event.target.checked;
-            pipeds_dirty = true;
-            break;
-        
-        case "spectralLocusVisibleCheckbox":
-            if(!isDiagramMode()){
-                if(visible_locus != null)
-                    visible_locus.visible = event.target.checked;  
-            }
-            else{
-                if(normalized_locus_curve != null)
-                    normalized_locus_curve.visible = event.target.checked;
-            }
-            visible_locus_dirty = true;
-            break;
-
-        case "unitPlaneVisibleCheckbox":
-            if(unit_plane_mesh != null)
-                unit_plane_mesh.visible = event.target.checked;
-            unit_plane_mesh_dirty = true;
-            break;
-    }
-
-}
-
-function handleGamutColorChange(event){
-    var id = event.target.id;
-    pipeds_dirty = true; 
-    switch(id)
-    {   
-        case "colorpick_ciergb":
-            ciergbColor = event.target.value;
-            break;
-
-        case "colorpick_adobe":
-            adobeColor = event.target.value;
-            break;
-        
-        case "colorpick_apple":
-            appleColor = event.target.value;
-            break; 
-
-        case "colorpick_srgb":
-            srgbColor = event.target.value;
-            break;
-
-        case "colorpick_xyz":
-            xyzColor = event.target.value;
-            break;
-    }
-
-}
-
 function updateGamutPipeds(XYZToBasis) {
     // Update XYZ Piped
     var mat = new THREE.Matrix3();
@@ -423,7 +771,7 @@ function updateGamutPipeds(XYZToBasis) {
     // Update CIERGB Piped
     var mat = CIERGBToXYZ.clone();
     mat.premultiply(XYZToBasis);
-    colormath.UpdateParallelipiped(piped_ciergb, mat, ciergbColor)
+    colormath.UpdateParallelipiped(piped_ciergb, mat, ciergbColor);
 
     // Update Adobe Piped
     var mat = AdobeRGBToXYZ.clone();
@@ -439,6 +787,122 @@ function updateGamutPipeds(XYZToBasis) {
     var mat = SRGBToXYZ.clone();
     mat.premultiply(XYZToBasis);
     colormath.UpdateParallelipiped(piped_srgb, mat, srgbColor);
+}
+
+function updateGamutTriangles(XYZToBasis)
+{
+    // Update XYZ Piped
+    var mat = new THREE.Matrix3();
+    mat.premultiply(XYZToBasis);
+    updateGamutTriangle(triangle_xyz, mat, xyzColor);
+
+    // Update CIERGB Piped
+    var mat = CIERGBToXYZ.clone();
+    mat.premultiply(XYZToBasis);
+    updateGamutTriangle(triangle_ciergb, mat, ciergbColor);
+
+    // Update Adobe Piped
+    var mat = AdobeRGBToXYZ.clone();
+    mat.premultiply(XYZToBasis);
+    updateGamutTriangle(triangle_adobe, mat, adobeColor);
+
+    // Update Apple Piped
+    var mat = AppleRGBToXYZ.clone();
+    mat.premultiply(XYZToBasis);
+    updateGamutTriangle(triangle_apple, mat, appleColor);
+
+    // Update SRGB Piped
+    var mat = SRGBToXYZ.clone();
+    mat.premultiply(XYZToBasis);
+    updateGamutTriangle(triangle_srgb, mat, srgbColor);
+}
+
+function updateColorViewer(XYZToBasis){
+    const colorBasis = document.getElementById("3DColor_basis_dropdown").value;
+
+    const r = document.getElementById("3DColorRCoordinate").value;
+    const g = document.getElementById("3DColorGCoordinate").value;
+    const b = document.getElementById("3DColorBCoordinate").value;
+
+    var colorBasisToXYZMat;
+
+    switch(colorBasis)
+    {
+        case "ciergb":
+            colorBasisToXYZMat = CIERGBToXYZ;
+            break;
+
+        case "adobe":
+            colorBasisToXYZMat = AdobeRGBToXYZ;
+            break;
+
+        case "apple":
+            colorBasisToXYZMat = AppleRGBToXYZ;
+            break;
+
+        case "srgb":
+            colorBasisToXYZMat = SRGBToXYZ;
+            break;
+
+        case "xyz":
+            colorBasisToXYZMat = new THREE.Matrix3();
+            break;
+    }
+
+    const rVec = new THREE.Vector3(1,0,0);
+    const gVec = new THREE.Vector3(0,1,0);
+    const bVec = new THREE.Vector3(0,0,1);
+
+    rVec.applyMatrix3(colorBasisToXYZMat);
+    gVec.applyMatrix3(colorBasisToXYZMat);
+    bVec.applyMatrix3(colorBasisToXYZMat);
+
+    rVec.applyMatrix3(XYZToBasis);
+    gVec.applyMatrix3(XYZToBasis);
+    bVec.applyMatrix3(XYZToBasis);
+
+    const origin = new THREE.Vector3(0,0,0);
+    
+    const lengthV1 = rVec.length();
+    const lengthV2 = gVec.length();
+    const lengthV3 = bVec.length();
+
+    const dirR = rVec.clone();
+    const dirG = gVec.clone();
+    const dirB = bVec.clone();
+
+    dirR.normalize();
+    dirG.normalize();
+    dirB.normalize();
+
+
+    // Update Color Point
+    // console.log(colormath.HexFromRGB(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)).toString(16));
+
+    colorViewerSphereGroup.clear();
+
+    colorViewerMaterial = new THREE.MeshBasicMaterial({color:colormath.HexFromRGB(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255))});
+    colorViewerPointMesh = new THREE.Mesh(colorViewerPointGeo, colorViewerMaterial);
+
+    colorViewerPointMesh.translateOnAxis(dirR, lengthV1 * r);
+    colorViewerPointMesh.translateOnAxis(dirB, lengthV3 * b);
+    colorViewerPointMesh.translateOnAxis(dirG, lengthV2 * g);
+
+    colorViewerSphereGroup.add(colorViewerPointMesh);
+
+    // Update Axes
+
+    updateAxisMeshes(colorViewerRAxis, dirR, origin, lengthV1  * r, rAxisColor);
+
+    var shifted_origin = origin.addScaledVector(dirR, lengthV1 * r);
+    console.log("Shifted Origin R:", shifted_origin);
+
+    updateAxisMeshes(colorViewerBAxis, dirB, shifted_origin.clone(), lengthV3  * b, bAxisColor);
+
+    shifted_origin = shifted_origin.addScaledVector(dirB, lengthV3 * b);
+    console.log("Shifted Origin R + B:", shifted_origin);
+
+    updateAxisMeshes(colorViewerGAxis, dirG, shifted_origin.clone(), lengthV2 * g, gAxisColor);
 }
 
 function updateVisibleLocus(XYZToBasis)
@@ -472,9 +936,7 @@ function updateVisibleLocus(XYZToBasis)
             const lambda_sphere_geo = new THREE.SphereGeometry(0.01,8,4);
             const lambda_mat = new THREE.MeshBasicMaterial({color: hex});
             const lambda_sphere = new THREE.Mesh(lambda_sphere_geo, lambda_mat);
-            lambda_sphere.translateX(v_plane.x);
-            lambda_sphere.translateY(v_plane.y);
-            lambda_sphere.translateZ(v_plane.z);
+            lambda_sphere.position.set(v_plane.x, v_plane.y, v_plane.z);
             normalized_locus_curve.add(lambda_sphere);
         }
     }
@@ -496,11 +958,58 @@ function updateDiagramPlaneVertices(XYZToBasis){
         z_vertex.x, z_vertex.y, z_vertex.z // v3
     ] );
     
-    unit_plane_geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    unit_triangle_geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 }
 
 function updateDiagramPlane(XYZToBasis){
     // updateDiagramPlaneVertices(XYZToBasis);
+}
+
+function updateDiagramCamera(){
+
+    var x_center = 0.5;
+    var y_center = 0.5;
+    var base_x_width = 3;
+    var base_y_height = 2;
+
+    if(normalized_locus_curve.visible && normalized_locus_curve.children.length > 0){  
+        const aabb = new THREE.Box3();
+        aabb.setFromObject( normalized_locus_curve );
+
+        console.log("Box Max:", aabb.max);
+        console.log("Box Min:", aabb.min);
+
+        console.log("Box Max X: ", aabb.max.x);
+        console.log("Box Min X: ", aabb.min.x);
+        console.log("Box X Size: ", aabb.max.x - aabb.min.x);
+
+        if(aabb.min.x < 0.5 - base_x_width / 2){
+            base_x_width = 3 - (aabb.min.x + 1);
+            x_center = (aabb.min.x + 2)/2;
+        }
+
+        if(aabb.max.y > 0.5 + base_y_height / 2){
+            base_y_height = aabb.max.y + 0.5;
+            y_center = (aabb.max.y - 0.5)/2;
+        }
+    }
+
+    const x_width = Math.max(base_x_width, base_y_height * stored_camera.aspect);
+    const y_height = Math.max(base_y_height, base_x_width / stored_camera.aspect);
+
+    console.log("x_center: ", x_center);
+    console.log("y_center: ", y_center);
+    console.log("x_width: ", x_width);
+    console.log("y_height: ", y_height);
+
+    const ortho = new THREE.OrthographicCamera(x_center - x_width/2, x_center + x_width/2,
+                                                y_center + y_height/2, y_center - y_height/2, 
+                                                1, 20);
+    ortho.translateZ(10);
+    ortho.lookAt(new THREE.Vector3(0,0,0));
+
+    camera.copy(ortho);
+
 }
 
 function animate() {
@@ -511,18 +1020,28 @@ function animate() {
     var XYZToBasis = basisToXYZ.clone();
     XYZToBasis.invert();
 
-    if(pipeds_dirty){
+    if(gamuts_dirty){
         updateGamutPipeds(XYZToBasis);
-        pipeds_dirty = false;
+        updateGamutTriangles(XYZToBasis);
+        gamuts_dirty = false;
+    }
+    if(color_viewer_dirty){
+        updateColorViewer(XYZToBasis);
+        color_viewer_dirty = false;
     }
     if(visible_locus_dirty){
         updateVisibleLocus(XYZToBasis);
         visible_locus_dirty = false;
     }
-    if(pipeds_dirty){
+    if(unit_meshes_dirty){
         updateDiagramPlane(XYZToBasis);
-        unit_plane_mesh_dirty = false;
+        unit_meshes_dirty = false;
     }
+    if(diagram_camera_dirty && isDiagramMode()){
+        updateDiagramCamera();
+        diagram_camera_dirty = false;
+    }
+
 
 	renderer.render( scene, camera );
 }
