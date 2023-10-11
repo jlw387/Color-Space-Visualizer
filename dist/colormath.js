@@ -98,7 +98,7 @@ export function EvaluateXYZColorMatchingFunction(lambda)
     return new THREE.Vector3(x,y,z);
 }
 
-function HexFromRGB(r, g, b)
+export function HexFromRGB(r, g, b)
 {
     return (r << 16) + (g << 8) + (b);
 }

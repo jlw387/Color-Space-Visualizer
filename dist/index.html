@@ -14,39 +14,141 @@
 			<div id="renderCanvas" class="render">
 			</div>
 			<div id="overallMenu" class="menu" style="text-align: center;">
-				<div id="basisSelectMenu">
+				<div id="basisSelectMenu" class="submenu_label" style="text-align: left">
 					<label for="basis_dropdown">Basis Color Space:</label>
 					<select id="basis_dropdown">
-						<option value="srgb">sRGB</option>
+						<option value="ciergb">CIE RGB</option>
 						<option value="adobe">Adobe RGB</option>
 						<option value="apple">Apple RGB</option>
+						<option value="srgb">sRGB</option>
 						<option value="xyz">CIE XYZ</option>
 					</select>
 				</div>
-				<div id="gamutVisibilityMenu" style="text-align: left;">
-					<div>
-						<label for="xyzVisibleCheckbox">CIE XYZ Gamut:</label>
-    					<input type="checkbox" id="xyzVisibleCheckbox" class="visible-checkbox" unchecked>
+				
+				<div id="rgbGamutMenuLabel" class="submenu_label" style="text-align: left;">
+					Predefined RGB Gamuts
+				</div>
+				<div id="rgbGamutVisibilityMenu" class="submenu" style="text-align: left;">
+					<div class="submenu_item">
+						<label for="ciergbVisibleCheckbox">CIE RGB Gamut:</label>
+    					<input type="checkbox" id="ciergbVisibleCheckbox" class="visible-checkbox" checked>
+						<input type='color' id="colorpick_ciergb"  class="gamut-colorpicker" value="#808080">
 					</div>
-					<div>
+					<div class="submenu_item">
 						<label for="adobeVisibleCheckbox">Adobe Gamut:</label>
     					<input type="checkbox" id="adobeVisibleCheckbox" class="visible-checkbox" unchecked>
+						<input type='color' id="colorpick_adobe" class="gamut-colorpicker" value="#FF00FF">
 					</div>
-					<div>
+					<div class="submenu_item">
 						<label for="appleVisibleCheckbox">Apple Gamut:</label>
     					<input type="checkbox" id="appleVisibleCheckbox" class="visible-checkbox" unchecked>
+						<input type='color' id="colorpick_apple" class="gamut-colorpicker" value="#FFFF00">
 					</div>
-					<div>
+					<div class="submenu_item">
 						<label for="srgbVisibleCheckbox">sRGB Gamut:</label>
-    					<input type="checkbox" id="srgbVisibleCheckbox" class="visible-checkbox" checked>
+    					<input type="checkbox" id="srgbVisibleCheckbox" class="visible-checkbox" unchecked>
+						<input type='color' id="colorpick_srgb"  class="gamut-colorpicker" value="#40C0C0">
 					</div>
-					<div>
-						<label for="spectralLocusVisibleCheckbox">Spectral Locus:</label>
-    					<input type="checkbox" id="spectralLocusVisibleCheckbox" class="visible-checkbox" unchecked>
+					<div class="submenu_item">
+						<label for="xyzVisibleCheckbox">CIE XYZ Gamut:</label>
+						<input type="checkbox" id="xyzVisibleCheckbox" class="visible-checkbox" unchecked>
+						<input type='color' id="colorpick_xyz"  class="gamut-colorpicker" value="#FFFFFF">	
 					</div>
 				</div>
+
+				<div id="rgbGamutOptions" class="submenu_label" style="text-align: left;">
+					Gamut Display Options
+				</div>
+				<div id="rgbGamutOptionsMenu" class="submenu" style="text-align: left;">
+					<div class="submenu_item">
+						<label for="3DGamutsVisibleCheckbox">Show 3D Gamuts:</label>
+    					<input type="checkbox" id="3DGamutsVisibleCheckbox" class="visible-checkbox" checked>
+					</div>
+					<div class="submenu_item">
+						<label for="2DGamutsVisibleCheckbox">Show 2D Gamuts:</label>
+    					<input type="checkbox" id="2DGamutsVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+				</div>
+
+				<div id="3DColorMenuLabel" class="submenu_label" style="text-align: left;">
+					3D Color Viewer
+				</div>
+				<div id="3DColorMenu" class="submenu" style="text-align: left;">
+					<div class="submenu_item" style="padding-top: 4px; padding-bottom: 4px">
+						<label for="3DColorVisibleCheckbox">Toggle 3D Color Viewer:</label>
+						<input type="checkbox" id="3DColorVisibleCheckbox" class="visible-checkbox" unchecked>
+					</div>
+					<div class="submenu_item" style="padding-top: 4px; padding-bottom: 4px">
+						<label for="3DColor_basis_dropdown">Basis Color Space (Color):</label>
+						<select id="3DColor_basis_dropdown" disabled>
+							<option value="ciergb">CIE RGB</option>
+							<option value="adobe">Adobe RGB</option>
+							<option value="apple">Apple RGB</option>
+							<option value="srgb">sRGB</option>
+							<option value="xyz">CIE XYZ</option>
+						</select>
+					</div>
+					<div class="submenu_item" id="3DColorCoordinates" style="padding-top: 4px; padding-bottom: 4px">
+						<label for="3DColorRCoordinate">R (or X):</label>
+						<input type="number" id="3DColorRCoordinate" min="0" max="1" step="0.01" value="0.5" disabled>
+
+						<label for="3DColorGCoordinate">G (or Y):</label>
+						<input type="number" id="3DColorGCoordinate" min="0" max="1" step="0.01" value="0.5" disabled>
+
+						<label for="3DColorBCoordinate">B (or Z):</label>
+						<input type="number" id="3DColorBCoordinate" min="0" max="1" step="0.01" value="0.5" disabled>
+					</div>
+					<div class="submenu_item" id="3DColorAxesCheckbox" style="padding-top: 4px; padding-bottom: 4px">
+						<label for="3DColorAxesVisibleCheckbox">Toggle 3D Coordinate Axis Projections:</label>
+						<input type="checkbox" id="3DColorAxesVisibleCheckbox" class="visible-checkbox" unchecked disabled>
+					</div>
+				</div>
+
+				<div id="UnitPlaneMenuLabel" class="submenu_label" style="text-align: left;">
+					Unit Plane Display Options
+				</div>
+				<div id="unitPlaneMenu" class="submenu" style="text-align: left;">
+					<div class="submenu_item">
+						<label for="unitTriangleVisibleCheckbox">Unit Color Triangle:</label>
+    					<input type="checkbox" id="unitTriangleVisibleCheckbox" class="visible-checkbox" unchecked>
+						<label for="unitTriangleOpacitySlider">  Opacity:</label>
+						<input type="range" id="unitTriangleOpacitySlider" min="0" max="1" step="0.01" value="0.5" class="opacity-slider">
+					</div>
+					<div class="submenu_item">
+						<label for="unitPlaneVisibleCheckbox">Unit Plane:</label>
+    					<input type="checkbox" id="unitPlaneVisibleCheckbox" class="visible-checkbox" unchecked>
+						<label for="unitPlaneOpacitySlider">  Opacity:</label>
+						<input type="range" id="unitPlaneOpacitySlider" min="0" max="1" step="0.01" value="0.5" class="opacity-slider">
+					</div>
+				</div>
+
+				<div id="spectralLocusMenuLabel" class=submenu_label style="text-align: left;">
+					Visible Locus:  
+					<label class="switch">
+						<input type="checkbox" id="spectralLocusVisibleCheckbox" class="visible-checkbox">
+						<span class="slider round"></span>
+					</label>
+				</div>
+
+				<div id="diagramMenuLabel" class=submenu_label style="text-align: left;">
+					2D Diagram Mode
+					<label class="switch">
+						<input type="checkbox" id="diagramModeToggle">
+						<span class="slider round"></span>
+					</label>
+				</div>
+								
+
 			</div>
 		</div>
-		<script type="module" src="/main.js"></script>
+		<script type="importmap">
+			{
+			  "imports": {
+				"three": "https://unpkg.com/three@0.156.1/build/three.module.js",
+				"three/addons/": "https://unpkg.com/three@0.156.1/examples/jsm/"
+			  }
+			}
+		  </script>
+		<script type="module" src="main.js"></script>
 	</body>
 </html>
